@@ -1,0 +1,184 @@
+---
+interface Props {
+  postSlug: string;
+}
+
+const { postSlug } = Astro.props;
+---
+
+<div class="like-button-container">
+  <button id="like-button" class="like-button" data-slug={postSlug}>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+    </svg>
+    <span id="like-count" class="like-count">0</span>
+  </button>
+  <p class="like-text">likes</p>
+</div>
+
+<style>
+  .like-button-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 2rem 0;
+  }
+
+  .like-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: rgb(var(--accent-light));
+    color: rgb(var(--accent));
+    border: 2px solid rgb(var(--accent));
+    border-radius: 9999px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .like-button:hover {
+    background: rgb(var(--accent));
+    color: white;
+    transform: scale(1.05);
+  }
+
+  .like-button:active {
+    transform: scale(0.95);
+  }
+
+  .like-button.liked {
+    background: rgb(var(--accent));
+    color: white;
+  }
+
+  .like-button.liked .heart-icon {
+    fill: currentColor;
+  }
+
+  .heart-icon {
+    width: 20px;
+    height: 20px;
+    transition: fill 0.2s ease;
+  }
+
+  .like-count {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .like-text {
+    color: rgb(var(--gray));
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .like-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  // Get the button and count elements
+  const button = document.getElementById('like-button') as HTMLButtonElement;
+  const countElement = document.getElementById('like-count') as HTMLSpanElement;
+
+  if (button && countElement) {
+    const postSlug = button.dataset.slug;
+
+    if (!postSlug) {
+      console.error('No post slug provided to LikeButton');
+    } else {
+      // Check if user has already liked this post
+      const hasLiked = localStorage.getItem(`liked-${postSlug}`) === 'true';
+      if (hasLiked) {
+        button.classList.add('liked');
+      }
+
+      // Fetch initial like count
+      async function fetchLikeCount() {
+        try {
+          const { data, error } = await supabase
+            .from('post_likes')
+            .select('like_count')
+            .eq('post_slug', postSlug)
+            .single();
+
+          if (error) {
+            // If post doesn't exist in database yet, create it
+            if (error.code === 'PGRST116') {
+              const { data: newData, error: insertError } = await supabase
+                .from('post_likes')
+                .insert({ post_slug: postSlug, like_count: 0 })
+                .select()
+                .single();
+
+              if (insertError) {
+                console.error('Error creating post likes:', insertError);
+              } else {
+                countElement.textContent = '0';
+              }
+            } else {
+              console.error('Error fetching likes:', error);
+            }
+          } else if (data) {
+            countElement.textContent = data.like_count.toString();
+          }
+        } catch (err) {
+          console.error('Error in fetchLikeCount:', err);
+        }
+      }
+
+      // Handle like button click
+      async function handleLike() {
+        if (!postSlug) return;
+
+        button.disabled = true;
+        const wasLiked = button.classList.contains('liked');
+        const increment = wasLiked ? -1 : 1;
+
+        try {
+          // Get current count
+          const { data: currentData } = await supabase
+            .from('post_likes')
+            .select('like_count')
+            .eq('post_slug', postSlug)
+            .single();
+
+          const currentCount = currentData?.like_count || 0;
+          const newCount = Math.max(0, currentCount + increment);
+
+          // Update count in database
+          const { error } = await supabase
+            .from('post_likes')
+            .update({ like_count: newCount })
+            .eq('post_slug', postSlug);
+
+          if (error) {
+            console.error('Error updating likes:', error);
+          } else {
+            // Update UI
+            countElement.textContent = newCount.toString();
+            button.classList.toggle('liked');
+
+            // Store like status in localStorage
+            localStorage.setItem(`liked-${postSlug}`, (!wasLiked).toString());
+          }
+        } catch (err) {
+          console.error('Error in handleLike:', err);
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      // Initialize
+      fetchLikeCount();
+      button.addEventListener('click', handleLike);
+    }
+  }
+</script>
