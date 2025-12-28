@@ -1,5 +1,6 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: nickshhong-hash/nick-hong-blog
   branch: master
 
 # Uncomment for local development/testing
