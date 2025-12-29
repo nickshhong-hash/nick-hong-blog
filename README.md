@@ -148,9 +148,27 @@ Provides sharing buttons for Twitter, Facebook, and LinkedIn.
 
 ## Deployment
 
-The site is configured for deployment at `https://nickhong.com`
+This site is configured for deployment on **Netlify** at `https://nickhong.com`.
 
-Update the `site` field in `astro.config.mjs` if deploying to a different domain.
+### Quick Deploy Steps
+
+1. Push your code to GitHub
+2. Connect repository to Netlify
+3. Add environment variables (Supabase credentials)
+4. Configure custom domain
+5. Set up GitHub OAuth for CMS access
+
+**Full deployment guide**: See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed step-by-step instructions.
+
+### Build Configuration
+
+The `netlify.toml` file includes:
+- Build commands and publish directory
+- Security headers
+- Cache optimization for assets
+- Deploy preview settings
+
+**Note**: If deploying to a different domain, update the `site` field in `astro.config.mjs`.
 
 ## Technologies
 
