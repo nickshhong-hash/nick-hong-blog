@@ -7,13 +7,19 @@ const { postSlug } = Astro.props;
 ---
 
 <div class="like-button-container">
-  <button id="like-button" class="like-button" data-slug={postSlug}>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon">
+  <button
+    id="like-button"
+    class="like-button"
+    data-slug={postSlug}
+    aria-label="Like this post"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon" aria-hidden="true">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
     </svg>
     <span id="like-count" class="like-count">0</span>
   </button>
   <p class="like-text">likes</p>
+  <p id="error-message" class="error-message" role="alert" aria-live="polite"></p>
 </div>
 
 <style>
@@ -22,6 +28,7 @@ const { postSlug } = Astro.props;
     align-items: center;
     gap: 0.5rem;
     margin: 2rem 0;
+    flex-wrap: wrap;
   }
 
   .like-button {
@@ -37,14 +44,20 @@ const { postSlug } = Astro.props;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
   }
 
-  .like-button:hover {
+  .like-button:hover:not(:disabled) {
     background: #ffe5e7;
     transform: scale(1.05);
   }
 
-  .like-button:active {
+  .like-button:focus-visible {
+    outline: 3px solid #e63946;
+    outline-offset: 2px;
+  }
+
+  .like-button:active:not(:disabled) {
     transform: scale(0.95);
   }
 
@@ -56,6 +69,29 @@ const { postSlug } = Astro.props;
   .like-button.liked .heart-icon {
     fill: #ff6b7a;
     stroke: white;
+  }
+
+  .like-button.loading {
+    opacity: 0.7;
+    cursor: wait;
+  }
+
+  .like-button.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    right: 12px;
+    margin-top: -8px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   .heart-icon {
@@ -79,20 +115,67 @@ const { postSlug } = Astro.props;
     opacity: 0.6;
     cursor: not-allowed;
   }
+
+  .error-message {
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin: 0;
+    width: 100%;
+    display: none;
+  }
+
+  .error-message.show {
+    display: block;
+  }
 </style>
 
 <script>
-  import { supabase } from '../lib/supabase';
+  import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
   // Get the button and count elements
   const button = document.getElementById('like-button') as HTMLButtonElement;
   const countElement = document.getElementById('like-count') as HTMLSpanElement;
+  const errorElement = document.getElementById('error-message') as HTMLParagraphElement;
+
+  // Helper to show error messages to users
+  function showError(message: string) {
+    if (errorElement) {
+      errorElement.textContent = message;
+      errorElement.classList.add('show');
+      setTimeout(() => {
+        errorElement.classList.remove('show');
+      }, 5000); // Hide after 5 seconds
+    }
+  }
+
+  // Helper to set loading state
+  function setLoading(loading: boolean) {
+    if (button) {
+      if (loading) {
+        button.classList.add('loading');
+        button.disabled = true;
+      } else {
+        button.classList.remove('loading');
+        button.disabled = false;
+      }
+    }
+  }
 
   if (button && countElement) {
     const postSlug = button.dataset.slug;
 
     if (!postSlug) {
       console.error('No post slug provided to LikeButton');
+      showError('Unable to load likes for this post');
+    } else if (!isSupabaseConfigured) {
+      // Supabase not configured - disable button gracefully
+      button.disabled = true;
+      countElement.textContent = '0';
+      console.warn('Like button disabled: Supabase not configured');
+    } else if (!supabase) {
+      // Should not happen but TypeScript safety
+      button.disabled = true;
+      showError('Service unavailable');
     } else {
       // Check if user has already liked this post
       const hasLiked = localStorage.getItem(`liked-${postSlug}`) === 'true';
@@ -102,6 +185,9 @@ const { postSlug } = Astro.props;
 
       // Fetch initial like count
       async function fetchLikeCount() {
+        if (!supabase) return;
+
+        setLoading(true);
         try {
           const { data, error } = await supabase
             .from('post_likes')
@@ -120,47 +206,59 @@ const { postSlug } = Astro.props;
 
               if (insertError) {
                 console.error('Error creating post likes:', insertError);
+                showError('Unable to initialize likes');
               } else {
                 countElement.textContent = '0';
               }
             } else {
               console.error('Error fetching likes:', error);
+              showError('Unable to load like count');
             }
           } else if (data) {
             countElement.textContent = data.like_count.toString();
           }
         } catch (err) {
           console.error('Error in fetchLikeCount:', err);
+          showError('Network error - please try again');
+        } finally {
+          setLoading(false);
         }
       }
 
       // Handle like button click
       async function handleLike() {
-        if (!postSlug) return;
+        if (!postSlug || !supabase) return;
 
-        button.disabled = true;
+        setLoading(true);
         const wasLiked = button.classList.contains('liked');
         const increment = wasLiked ? -1 : 1;
 
         try {
           // Get current count
-          const { data: currentData } = await supabase
+          const { data: currentData, error: fetchError } = await supabase
             .from('post_likes')
             .select('like_count')
             .eq('post_slug', postSlug)
             .single();
 
+          if (fetchError) {
+            console.error('Error fetching current count:', fetchError);
+            showError('Unable to update likes');
+            return;
+          }
+
           const currentCount = currentData?.like_count || 0;
           const newCount = Math.max(0, currentCount + increment);
 
           // Update count in database
-          const { error } = await supabase
+          const { error: updateError } = await supabase
             .from('post_likes')
             .update({ like_count: newCount })
             .eq('post_slug', postSlug);
 
-          if (error) {
-            console.error('Error updating likes:', error);
+          if (updateError) {
+            console.error('Error updating likes:', updateError);
+            showError('Failed to update like - please try again');
           } else {
             // Update UI
             countElement.textContent = newCount.toString();
@@ -168,11 +266,18 @@ const { postSlug } = Astro.props;
 
             // Store like status in localStorage
             localStorage.setItem(`liked-${postSlug}`, (!wasLiked).toString());
+
+            // Update aria-label for screen readers
+            button.setAttribute(
+              'aria-label',
+              wasLiked ? 'Like this post' : 'Unlike this post'
+            );
           }
         } catch (err) {
           console.error('Error in handleLike:', err);
+          showError('Network error - please try again');
         } finally {
-          button.disabled = false;
+          setLoading(false);
         }
       }
 

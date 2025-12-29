@@ -16,17 +16,17 @@ const { title, description, pubDate, heroImage, slug, author = 'Nick Hong', tags
 ---
 
 <article class="blog-card">
-	<a href={`/blog/${slug}/`} class="card-link">
+	<a href={`/blog/${slug}/`} class="card-link" aria-label={`Read blog post: ${title}`}>
 		{heroImage && (
 			<div class="card-image">
-				<Image src={heroImage} alt={title} width={400} height={250} />
+				<Image src={heroImage} alt={`Cover image for ${title}`} width={400} height={250} />
 			</div>
 		)}
 		<div class="card-content">
 			{tags.length > 0 && (
-				<div class="card-tags">
+				<div class="card-tags" role="list" aria-label="Post tags">
 					{tags.map((tag) => (
-						<span class="tag">{tag}</span>
+						<span class="tag" role="listitem">{tag}</span>
 					))}
 				</div>
 			)}
@@ -34,15 +34,15 @@ const { title, description, pubDate, heroImage, slug, author = 'Nick Hong', tags
 			<p class="card-description">{description}</p>
 			<div class="card-meta">
 				<div class="author-info">
-					<div class="author-avatar">
+					<div class="author-avatar" aria-hidden="true">
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
 							<circle cx="12" cy="7" r="4"></circle>
 						</svg>
 					</div>
-					<span class="author-name">{author}</span>
+					<span class="author-name" aria-label={`Author: ${author}`}>{author}</span>
 				</div>
-				<time class="card-date">
+				<time class="card-date" datetime={pubDate.toISOString()}>
 					<FormattedDate date={pubDate} />
 				</time>
 			</div>
@@ -73,6 +73,12 @@ const { title, description, pubDate, heroImage, slug, author = 'Nick Hong', tags
 		display: flex;
 		flex-direction: column;
 		height: 100%;
+		border-radius: 16px;
+	}
+
+	.card-link:focus-visible {
+		outline: 3px solid var(--accent);
+		outline-offset: 4px;
 	}
 
 	.card-image {
