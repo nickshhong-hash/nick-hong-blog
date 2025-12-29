@@ -20,13 +20,33 @@ const posts = (await getCollection('blog')).sort(
 		<Header />
 		<main>
 			<section class="hero">
-				<h1 class="hero-title">Browse Our Resources</h1>
-				<p class="hero-subtitle">
-					Discover insights on business, technology, and life from my personal journey and experiences.
-				</p>
+				<div class="hero-content">
+					<h1 class="hero-title">Browse Our Resources</h1>
+					<p class="hero-subtitle">
+						Discover insights on business, technology, and life. Learn from real experiences, practical strategies, and lessons learned building companies and products.
+					</p>
+					<a href="#posts" class="hero-cta">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<line x1="5" y1="12" x2="19" y2="12"></line>
+							<polyline points="12 5 19 12 12 19"></polyline>
+						</svg>
+						Read latest articles
+					</a>
+				</div>
+				<div class="hero-visual">
+					<div class="hero-placeholder">
+						<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+							<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+							<circle cx="12" cy="12" r="2" fill="var(--accent)"></circle>
+							<path d="M10 10l-2-2"></path>
+							<path d="M14 14l2 2"></path>
+						</svg>
+					</div>
+				</div>
 			</section>
 
-			<section class="posts-grid">
+			<section class="posts-grid" id="posts">
 				{posts.map((post) => (
 					<BlogCard
 						title={post.data.title}
@@ -46,41 +66,98 @@ const posts = (await getCollection('blog')).sort(
 
 <style>
 	main {
-		max-width: 1200px;
+		max-width: 1400px;
 		margin: 0 auto;
-		padding: 2rem 1rem;
+		padding: 0;
 	}
 
 	.hero {
-		text-align: center;
-		padding: 4rem 1rem;
-		margin-bottom: 3rem;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		border-radius: 32px;
+		overflow: hidden;
+		margin: 2rem 1rem;
+		box-shadow: var(--box-shadow-lg);
+		min-height: 500px;
+	}
+
+	.hero-content {
+		background: var(--primary);
+		padding: 4rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 2rem;
 	}
 
 	.hero-title {
-		font-size: 3rem;
+		font-size: 3.5rem;
 		font-weight: 700;
-		margin: 0 0 1rem 0;
-		color: rgb(var(--black));
+		margin: 0;
+		color: white;
 		letter-spacing: -0.02em;
+		line-height: 1.1;
 	}
 
 	.hero-subtitle {
-		font-size: 1.25rem;
-		color: rgb(var(--gray));
-		max-width: 600px;
-		margin: 0 auto;
-		line-height: 1.6;
+		font-size: 1.125rem;
+		color: rgba(255, 255, 255, 0.9);
+		max-width: 500px;
+		margin: 0;
+		line-height: 1.7;
+	}
+
+	.hero-cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.75rem;
+		background: var(--accent);
+		color: white;
+		padding: 1rem 2rem;
+		border-radius: 50px;
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 0.3s ease;
+		align-self: flex-start;
+		box-shadow: 0 4px 12px rgba(255, 127, 80, 0.3);
+	}
+
+	.hero-cta:hover {
+		background: var(--accent-dark);
+		transform: translateX(4px);
+		box-shadow: 0 6px 16px rgba(255, 127, 80, 0.4);
+	}
+
+	.hero-cta svg {
+		transition: transform 0.3s ease;
+	}
+
+	.hero-cta:hover svg {
+		transform: translateX(4px);
+	}
+
+	.hero-visual {
+		background: var(--cream);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 3rem;
+	}
+
+	.hero-placeholder svg {
+		color: var(--primary);
+		opacity: 0.3;
 	}
 
 	.posts-grid {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
-		gap: 2rem;
-		margin-bottom: 4rem;
+		gap: 2.5rem;
+		margin: 4rem 1rem;
+		padding-bottom: 4rem;
 	}
 
-	@media (max-width: 1024px) {
+	@media (max-width: 1200px) {
 		.posts-grid {
 			grid-template-columns: repeat(2, 1fr);
 		}
@@ -88,31 +165,49 @@ const posts = (await getCollection('blog')).sort(
 
 	@media (max-width: 768px) {
 		.hero {
-			padding: 2rem 1rem;
-			margin-bottom: 2rem;
+			grid-template-columns: 1fr;
+			margin: 1rem;
+			min-height: auto;
+		}
+
+		.hero-content {
+			padding: 3rem 2rem;
 		}
 
 		.hero-title {
-			font-size: 2rem;
+			font-size: 2.5rem;
 		}
 
 		.hero-subtitle {
 			font-size: 1rem;
 		}
 
+		.hero-visual {
+			display: none;
+		}
+
 		.posts-grid {
 			grid-template-columns: 1fr;
 			gap: 1.5rem;
+			margin: 2rem 1rem;
 		}
 	}
 
 	@media (max-width: 480px) {
-		main {
-			padding: 1rem 0.5rem;
+		.hero {
+			border-radius: 24px;
+		}
+
+		.hero-content {
+			padding: 2rem 1.5rem;
+		}
+
+		.hero-title {
+			font-size: 2rem;
 		}
 
 		.posts-grid {
-			gap: 1rem;
+			margin: 1.5rem 0.5rem;
 		}
 	}
 </style>

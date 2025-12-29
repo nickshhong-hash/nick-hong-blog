@@ -27,18 +27,23 @@ const fullUrl = new URL(Astro.url.pathname, Astro.site || Astro.url.origin).toSt
 		<BaseHead title={title} description={description} />
 		<style>
 			main {
-				width: calc(100% - 2em);
+				width: 100%;
 				max-width: 100%;
 				margin: 0;
 			}
 			.hero-image {
 				width: 100%;
+				max-width: 900px;
+				margin: 0 auto;
+				padding: 2rem 1rem 0;
 			}
 			.hero-image img {
 				display: block;
 				margin: 0 auto;
-				border-radius: 12px;
+				border-radius: 24px;
 				box-shadow: var(--box-shadow);
+				max-height: 500px;
+				object-fit: cover;
 			}
 			.prose {
 				width: 720px;

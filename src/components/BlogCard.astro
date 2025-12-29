@@ -13,38 +13,42 @@ interface Props {
 }
 
 const { title, description, pubDate, heroImage, slug, author = 'Nick Hong', tags = [] } = Astro.props;
+// Use first tag or default to "Article"
+const primaryTag = tags && tags.length > 0 ? tags[0] : 'Article';
 ---
 
 <article class="blog-card">
 	<a href={`/blog/${slug}/`} class="card-link" aria-label={`Read blog post: ${title}`}>
 		{heroImage && (
-			<div class="card-image">
-				<Image src={heroImage} alt={`Cover image for ${title}`} width={400} height={250} />
+			<div class="card-image-wrapper">
+				<Image
+					src={heroImage}
+					alt={`Cover image for ${title}`}
+					width={600}
+					height={400}
+					class="card-image"
+				/>
 			</div>
 		)}
+
 		<div class="card-content">
-			{tags.length > 0 && (
-				<div class="card-tags" role="list" aria-label="Post tags">
-					{tags.map((tag) => (
-						<span class="tag" role="listitem">{tag}</span>
-					))}
-				</div>
-			)}
-			<h3 class="card-title">{title}</h3>
-			<p class="card-description">{description}</p>
-			<div class="card-meta">
-				<div class="author-info">
-					<div class="author-avatar" aria-hidden="true">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-							<circle cx="12" cy="7" r="4"></circle>
-						</svg>
-					</div>
-					<span class="author-name" aria-label={`Author: ${author}`}>{author}</span>
-				</div>
+			<div class="card-header">
+				<span class="card-tag">{primaryTag}</span>
 				<time class="card-date" datetime={pubDate.toISOString()}>
 					<FormattedDate date={pubDate} />
 				</time>
+			</div>
+
+			<h3 class="card-title">{title}</h3>
+
+			<div class="card-author">
+				<div class="author-avatar" aria-hidden="true">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+						<circle cx="12" cy="7" r="4"></circle>
+					</svg>
+				</div>
+				<span class="author-name">{author}</span>
 			</div>
 		</div>
 	</a>
@@ -53,18 +57,18 @@ const { title, description, pubDate, heroImage, slug, author = 'Nick Hong', tags
 <style>
 	.blog-card {
 		background: white;
-		border-radius: 16px;
+		border-radius: 24px;
 		overflow: hidden;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-		transition: all 0.3s ease;
+		box-shadow: var(--box-shadow);
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		height: 100%;
 		display: flex;
 		flex-direction: column;
 	}
 
 	.blog-card:hover {
-		transform: translateY(-4px);
-		box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+		transform: translateY(-8px);
+		box-shadow: var(--box-shadow-lg);
 	}
 
 	.card-link {
@@ -73,7 +77,7 @@ const { title, description, pubDate, heroImage, slug, author = 'Nick Hong', tags
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		border-radius: 16px;
+		border-radius: 24px;
 	}
 
 	.card-link:focus-visible {
@@ -81,132 +85,128 @@ const { title, description, pubDate, heroImage, slug, author = 'Nick Hong', tags
 		outline-offset: 4px;
 	}
 
-	.card-image {
+	.card-image-wrapper {
 		width: 100%;
-		height: 240px;
+		height: 280px;
 		overflow: hidden;
-		background: rgb(var(--gray-light));
+		background: var(--cream);
+		padding: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
-	.card-image img {
+	.card-image {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform 0.3s ease;
-		border-radius: 0;
+		border-radius: 16px;
+		transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
-	.blog-card:hover .card-image img {
+	.blog-card:hover .card-image {
 		transform: scale(1.05);
 	}
 
 	.card-content {
-		padding: 24px;
+		padding: 32px;
 		display: flex;
 		flex-direction: column;
+		gap: 16px;
 		flex: 1;
+		background: white;
 	}
 
-	.card-tags {
+	.card-header {
 		display: flex;
-		gap: 8px;
-		flex-wrap: wrap;
-		margin-bottom: 12px;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
 	}
 
-	.tag {
-		background: rgb(var(--gray-light));
-		color: rgb(var(--gray-dark));
-		padding: 4px 12px;
+	.card-tag {
+		background: var(--accent);
+		color: white;
+		padding: 6px 16px;
 		border-radius: 20px;
 		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: capitalize;
+		letter-spacing: 0.02em;
+	}
+
+	.card-date {
+		color: rgb(var(--gray));
+		font-size: 0.875rem;
 		font-weight: 500;
-		text-transform: lowercase;
 	}
 
 	.card-title {
 		font-size: 1.5rem;
 		font-weight: 700;
-		margin: 0 0 12px 0;
-		color: rgb(var(--black));
+		margin: 0;
+		color: var(--primary-dark);
 		line-height: 1.3;
 		transition: color 0.2s ease;
+		letter-spacing: -0.01em;
 	}
 
 	.blog-card:hover .card-title {
 		color: var(--accent);
 	}
 
-	.card-description {
-		font-size: 0.95rem;
-		color: rgb(var(--gray));
-		line-height: 1.6;
-		margin: 0 0 auto 0;
-		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-
-	.card-meta {
+	.card-author {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		margin-top: 16px;
-		padding-top: 16px;
-		border-top: 1px solid rgb(var(--gray-light));
-		font-size: 0.875rem;
-	}
-
-	.author-info {
-		display: flex;
-		align-items: center;
-		gap: 8px;
+		gap: 12px;
+		margin-top: auto;
 	}
 
 	.author-avatar {
-		width: 32px;
-		height: 32px;
+		width: 40px;
+		height: 40px;
 		border-radius: 50%;
-		background: rgb(var(--gray-light));
+		background: var(--cream);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: rgb(var(--gray));
+		color: var(--primary);
+		flex-shrink: 0;
 	}
 
 	.author-avatar svg {
-		width: 18px;
-		height: 18px;
+		width: 20px;
+		height: 20px;
 	}
 
 	.author-name {
 		font-weight: 500;
-		color: rgb(var(--gray-dark));
+		color: var(--primary-dark);
+		font-size: 0.9375rem;
 	}
 
-	.card-date {
-		color: rgb(var(--gray));
-		font-size: 0.875rem;
-	}
-
-	@media (max-width: 720px) {
-		.card-image {
-			height: 200px;
+	@media (max-width: 768px) {
+		.card-image-wrapper {
+			height: 220px;
+			padding: 16px;
 		}
 
 		.card-content {
-			padding: 20px;
+			padding: 24px;
+			gap: 12px;
 		}
 
 		.card-title {
 			font-size: 1.25rem;
 		}
 
-		.card-meta {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 8px;
+		.author-avatar {
+			width: 36px;
+			height: 36px;
+		}
+
+		.author-name {
+			font-size: 0.875rem;
 		}
 	}
 </style>
