@@ -1,62 +1,169 @@
-# Astro Starter Kit: Blog
+# Nick's Blog
 
-```sh
-npm create astro@latest -- --template blog
+A personal blog built with Astro 5, featuring a content management system, social engagement features, and modern web technologies.
+
+## Features
+
+- Static site generation with Astro 5
+- MDX support for rich content
+- Netlify CMS for web-based content editing
+- GitHub OAuth authentication for CMS
+- Like button functionality with Supabase
+- Reading time estimation
+- Social sharing buttons
+- SEO-friendly with canonical URLs and OpenGraph data
+- RSS feed and sitemap support
+- 100/100 Lighthouse performance score
+
+## Prerequisites
+
+- Node.js (latest LTS recommended)
+- npm
+- Supabase account and project
+- GitHub account (for CMS authentication)
+
+## Environment Setup
+
+Create a `.env` file in the root directory:
+
+```env
+PUBLIC_SUPABASE_URL=your_supabase_project_url
+PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Installation
 
-Features:
+```bash
+npm install
+```
 
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and OpenGraph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
+## Development
 
-## 🚀 Project Structure
+```bash
+npm run dev
+```
 
-Inside of your Astro project, you'll see the following folders and files:
+Starts the development server at `http://localhost:4321`
 
-```text
+## Building
+
+```bash
+npm run build
+```
+
+Builds the production site to `./dist/`
+
+## Preview
+
+```bash
+npm run preview
+```
+
+Preview your production build locally before deploying
+
+## Project Structure
+
+```
 ├── public/
+│   ├── admin/              # Netlify CMS files
+│   │   ├── config.yml      # CMS configuration
+│   │   └── index.html      # CMS admin interface
+│   └── uploads/            # Media uploads from CMS
 ├── src/
-│   ├── components/
-│   ├── content/
-│   ├── layouts/
-│   └── pages/
-├── astro.config.mjs
-├── README.md
-├── package.json
-└── tsconfig.json
+│   ├── components/         # Reusable Astro components
+│   │   ├── LikeButton.astro
+│   │   ├── ReadingTime.astro
+│   │   ├── SocialShare.astro
+│   │   └── ...
+│   ├── content/
+│   │   └── blog/          # Blog posts (Markdown/MDX)
+│   ├── layouts/           # Page layouts
+│   │   └── BlogPost.astro # Main blog post template
+│   ├── lib/              # Utilities and clients
+│   │   └── supabase.ts   # Supabase client
+│   └── pages/            # File-based routing
+│       ├── index.astro
+│       ├── about.astro
+│       └── blog/
+│           ├── index.astro
+│           └── [...slug].astro
+├── astro.config.mjs      # Astro configuration
+└── package.json
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Content Management
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+### Accessing the CMS
 
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
+Navigate to `/admin` on your deployed site to access the Netlify CMS interface.
 
-Any static assets, like images, can be placed in the `public/` directory.
+Authentication uses GitHub OAuth with the repository: `nickshhong-hash/nick-hong-blog`
 
-## 🧞 Commands
+### Creating Blog Posts
 
-All commands are run from the root of the project, from a terminal:
+1. Log in to the CMS at `/admin`
+2. Navigate to "Blog Posts"
+3. Click "New Blog Posts"
+4. Fill in:
+   - Title
+   - Description
+   - Publish Date
+   - Hero Image (optional)
+   - Body content
+5. Save and publish
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Posts are automatically committed to the `master` branch.
 
-## 👀 Want to learn more?
+## Supabase Integration
 
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+The blog uses Supabase for the like button feature.
+
+### Database Schema
+
+Table: `post_likes`
+- `post_slug` (text, primary key): URL slug of the blog post
+- `like_count` (integer): Number of likes for the post
+
+### Setup Instructions
+
+See `docs/SUPABASE_SETUP.md` for detailed setup instructions.
+
+## Components
+
+### LikeButton
+
+Interactive like button that:
+- Tracks likes in Supabase
+- Uses localStorage to remember user's likes
+- Auto-creates database entries for new posts
+- Shows real-time like counts
+
+### ReadingTime
+
+Calculates and displays estimated reading time based on word count (200 words/minute).
+
+### SocialShare
+
+Provides sharing buttons for Twitter, Facebook, and LinkedIn.
+
+## Deployment
+
+The site is configured for deployment at `https://nickhong.com`
+
+Update the `site` field in `astro.config.mjs` if deploying to a different domain.
+
+## Technologies
+
+- [Astro 5](https://astro.build) - Static site framework
+- [MDX](https://mdxjs.com) - Markdown with JSX
+- [Supabase](https://supabase.com) - Backend database
+- [Netlify CMS](https://www.netlifycms.org/) - Content management
+- [Sharp](https://sharp.pixelplumbing.com/) - Image optimization
+
+## License
+
+Private project
 
 ## Credit
 
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+Theme based on the [Bear Blog](https://github.com/HermanMartinus/bearblog/) template.
